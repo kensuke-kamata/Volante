@@ -19,6 +19,21 @@
             }
         },
         {
+            "name": "macos-base",
+            "hidden": true,
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "cacheVariables": {
+                   "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        },
+        {
             "name": "x64-debug",
             "displayName": "x64 Debug",
             "inherits": "windows-base",
@@ -54,6 +69,22 @@
             "name": "x86-release",
             "displayName": "x86 Release",
             "inherits": "x86-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "macos-debug",
+            "displayName": "macOS Debug",
+            "inherits": "macos-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "macos-release",
+            "displayName": "macOS Release",
+            "inherits": "macos-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }

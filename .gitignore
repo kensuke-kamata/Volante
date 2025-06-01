@@ -11,6 +11,8 @@ CMakeFiles/
 cmake_install.cmake
 Makefile
 
+vcpkg_installed/
+
 *.exe
 *.dll
 *.pdb
@@ -20,4 +22,5 @@ Makefile
 *.lib
 
 .idea
+.DS_Store
 .vscode/
