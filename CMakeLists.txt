@@ -20,8 +20,10 @@ find_package(imgui CONFIG REQUIRED)
 
 # ソースファイル
 add_executable (Volante
-	"Volante.cpp"
-	"Volante.h"
+    "Volante.cpp"
+    "Volante.h"
+    "Shader.h"
+    "Mesh.h"
 )
 
 # ライブラリのリンク
