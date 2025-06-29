@@ -9,12 +9,12 @@ constexpr const char* TITLE = "Volante Engine";
 int main() {
     Volante::Engine Engine;
 
-    Volante::WindowContext WindowContext;
-    WindowContext.Width = SCR_WIDTH;
-    WindowContext.Height = SCR_HEIGHT;
-    WindowContext.Title = TITLE;
-    WindowContext.Vsync = true;
-    WindowContext.Samples = 4;
+    Volante::WindowDesc WindowContext;
+    WindowContext.width = SCR_WIDTH;
+    WindowContext.height = SCR_HEIGHT;
+    WindowContext.title = TITLE;
+    WindowContext.vsync = true;
+    WindowContext.samples = 4;
 
     if (!Engine.Initialize(WindowContext)) {
         std::cerr << "FAILED: Initialize Volante Engine" << std::endl;

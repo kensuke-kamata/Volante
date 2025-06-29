@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include "IWindow.h"
+#include "Runtime/Core/HAL/IWindow.h"
 
 namespace Volante {
 
@@ -24,7 +24,7 @@ public:
     Engine();
     ~Engine();
 
-    bool Initialize(const WindowContext& WindowContext);
+    bool Initialize(const WindowDesc& WindowDesc);
     void Run();
     void Shutdown();
 

@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "GLFWKeyMapper.h"
 
 #include <iostream>
 #include <ranges>
@@ -19,9 +20,9 @@ Engine::~Engine() {
     Instance = nullptr;
 }
 
-bool Engine::Initialize(const WindowContext& WindowContext) {
+bool Engine::Initialize(const WindowDesc& WindowDesc) {
     try {
-        Window = Window::Create(WindowContext);
+        Window = Window::Create(WindowDesc);
         if (!Window) {
             throw std::runtime_error("Failed to create window");
         }
@@ -173,7 +174,7 @@ void InputManager::Update(float DeltaTime) {
 }
 
 bool InputManager::IsKeyPressed(int Key) const {
-    return Window->IsKeyPressed(Key);
+    return Window->IsKeyPressed(GLFWKeyMapper::FromGLFWKey(Key));
 }
 
 void InputManager::GetMousePosition(double& X, double& Y) const {

@@ -4,40 +4,72 @@
 #include <stdexcept>
 #include <unordered_map>
 
-namespace Volante {
+#include "GLFWKeyMapper.h"
 
-std::unordered_map<GLFWwindow*, GLFWWindow*> GLFWWindow::Registry;
+namespace Volante
+{
 
-class GLFWInitializer {
+//================================================================
+// GLFWInitializer
+//================================================================
+class GLFWInitializer
+{
 public:
-    GLFWInitializer() {
-        if (glfwInit() == GLFW_FALSE) {
+    GLFWInitializer()
+    {
+        if (glfwInit() == GLFW_FALSE)
+        {
             throw std::runtime_error("Failed to initialize GLFW");
         }
         Initialized = true;
     }
 
-    ~GLFWInitializer() {
-        if (Initialized) {
+    ~GLFWInitializer()
+    {
+        if (Initialized)
+        {
             glfwTerminate();
         }
     }
 
-    static void Initialize() { static GLFWInitializer initializer; }
+    static void Initialize()
+    {
+        static GLFWInitializer initializer;
+    }
 
 private:
     bool Initialized = false;
 };
 
-GLContext::GLContext(GLFWwindow* InWindow) : Window(InWindow) {}
+//================================================================
+// GLFWContext
+//================================================================
+GLFWContext::GLFWContext(GLFWwindow* window) : window_(window)
+{
+}
 
-void GLContext::MakeCurrent() { glfwMakeContextCurrent(Window); }
+void GLFWContext::MakeCurrent()
+{
+    glfwMakeContextCurrent(window_);
+}
 
-void GLContext::SwapBuffers() { glfwSwapBuffers(Window); }
+void GLFWContext::SwapBuffers()
+{
+    glfwSwapBuffers(window_);
+}
 
-void GLContext::SetVSync(bool Enabled) { glfwSwapInterval(Enabled ? 1 : 0); }
+void GLFWContext::SetVSync(bool enabled)
+{
+    glfwSwapInterval(enabled ? 1 : 0);
+}
 
-GLFWWindow::GLFWWindow(const WindowContext& WindowContext) {
+//================================================================
+// GLFWWindow
+//================================================================
+std::unordered_map<GLFWwindow*, GLFWWindow*> GLFWWindow::Registry;
+
+GLFWWindow::GLFWWindow(const WindowDesc& windowDesc)
+{
     GLFWInitializer::Initialize();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -48,36 +80,39 @@ GLFWWindow::GLFWWindow(const WindowContext& WindowContext) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    if (WindowContext.Samples > 1) {
-        glfwWindowHint(GLFW_SAMPLES, WindowContext.Samples);
+    if (windowDesc.samples > 1)
+    {
+        glfwWindowHint(GLFW_SAMPLES, windowDesc.samples);
     }
 
-    GLFWmonitor* monitor = WindowContext.Fullscreen ? glfwGetPrimaryMonitor() : nullptr;
-    Window = glfwCreateWindow(WindowContext.Width, WindowContext.Height,
-                              WindowContext.Title.c_str(), monitor, nullptr);
+    GLFWmonitor* monitor = windowDesc.fullscreen ? glfwGetPrimaryMonitor() : nullptr;
+    Window = glfwCreateWindow(windowDesc.width, windowDesc.height,
+                              windowDesc.title.c_str(), monitor, nullptr);
 
-    if (!Window) {
+    if (!Window)
+    {
         throw std::runtime_error("Failed to create GLFW window");
     }
 
     Registry[Window] = this;
 
-    Context = std::make_unique<GLContext>(Window);
+    Context = std::make_unique<GLFWContext>(Window);
     Context->MakeCurrent();
 
     auto GLLoader = [](const char* name) -> void* {
         return reinterpret_cast<void*>(glfwGetProcAddress(name));
     };
-    if (!gladLoadGLLoader(GLLoader)) {
+    if (!gladLoadGLLoader(GLLoader))
+    {
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    glfwSetFramebufferSizeCallback(Window, OnResize);
-    glfwSetKeyCallback(Window, OnKeyEvent);
-    glfwSetMouseButtonCallback(Window, OnMouseButtonEvent);
-    glfwSetCursorPosCallback(Window, OnMoveCursorPos);
+    glfwSetFramebufferSizeCallback(Window, GLFWResizeCallback);
+    glfwSetKeyCallback(Window, GLFWKeyCallback);
+    glfwSetMouseButtonCallback(Window, GLFWMouseButtonCallback);
+    glfwSetCursorPosCallback(Window, GLFWCursorPosCallback);
 
-    Context->SetVSync(WindowContext.Vsync);
+    Context->SetVSync(windowDesc.vsync);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -86,85 +121,142 @@ GLFWWindow::GLFWWindow(const WindowContext& WindowContext) {
     glViewport(0, 0, FbWidth, FbHeight);
 }
 
-GLFWWindow::~GLFWWindow() {
-    if (Window) {
+GLFWWindow::~GLFWWindow()
+{
+    if (Window)
+    {
         Registry.erase(Window);
         glfwDestroyWindow(Window);
     }
 }
 
-void GLFWWindow::Show() { glfwShowWindow(Window); }
+void GLFWWindow::Show()
+{
+    glfwShowWindow(Window);
+}
 
-void GLFWWindow::Hide() { glfwHideWindow(Window); }
+void GLFWWindow::Hide()
+{
+    glfwHideWindow(Window);
+}
 
-void GLFWWindow::Close() { glfwSetWindowShouldClose(Window, GLFW_TRUE); }
+void GLFWWindow::Close()
+{
+    glfwSetWindowShouldClose(Window, GLFW_TRUE);
+}
 
-bool GLFWWindow::ShouldClose() const { return glfwWindowShouldClose(Window); }
+bool GLFWWindow::ShouldClose() const
+{
+    return glfwWindowShouldClose(Window);
+}
 
-void GLFWWindow::SetTitle(const std::string& Title) { glfwSetWindowTitle(Window, Title.c_str()); }
+void GLFWWindow::SetTitle(const std::string& Title)
+{
+    glfwSetWindowTitle(Window, Title.c_str());
+}
 
-void GLFWWindow::SetSize(int Width, int Height) { glfwSetWindowSize(Window, Width, Height); }
+void GLFWWindow::SetSize(int Width, int Height)
+{
+    glfwSetWindowSize(Window, Width, Height);
+}
 
-void GLFWWindow::GetSize(int& Width, int& Height) const {
+void GLFWWindow::GetSize(int& Width, int& Height) const
+{
     glfwGetWindowSize(Window, &Width, &Height);
 }
 
-void GLFWWindow::GetFramebufferSize(int& Width, int& Height) const {
+void GLFWWindow::GetFramebufferSize(int& Width, int& Height) const
+{
     glfwGetFramebufferSize(Window, &Width, &Height);
 }
 
-IGraphicsContext* GLFWWindow::GetGraphicsContext() const { return Context.get(); }
-
-void GLFWWindow::SwapBuffers() { Context->SwapBuffers(); }
-
-void GLFWWindow::PollEvents() { glfwPollEvents(); }
-
-bool GLFWWindow::IsKeyPressed(int Key) const { return glfwGetKey(Window, Key) == GLFW_PRESS; }
-
-void GLFWWindow::GetCursorPos(double& x, double& y) const { glfwGetCursorPos(Window, &x, &y); }
-
-void GLFWWindow::SetResizeCallback(const IWindow::ResizeCallback& Callback) {
-    ResizeCallback = Callback;
+void* GLFWWindow::GetNativeHandle() const
+{
+    return Window;
 }
 
-void GLFWWindow::SetKeyCallback(const IWindow::KeyCallback& Callback) { KeyCallback = Callback; }
-
-void GLFWWindow::SetMouseButtonCallback(const IWindow::MouseButtonCallback& Callback) {
-    MouseButtonCallback = Callback;
+IGraphicsContext* GLFWWindow::GetGraphicsContext() const
+{
+    return Context.get();
 }
 
-void GLFWWindow::SetCursorPosCallback(const IWindow::CursorPosCallback& Callback) {
-    CursorPosCallback = Callback;
+void GLFWWindow::SwapBuffers()
+{
+    Context->SwapBuffers();
 }
 
-void GLFWWindow::OnResize(GLFWwindow* Window, int Width, int Height) {
-    if (const auto It = Registry.find(Window); It != Registry.end() && It->second->ResizeCallback) {
-        It->second->ResizeCallback(Width, Height);
+void GLFWWindow::PollEvents()
+{
+    glfwPollEvents();
+}
+
+bool GLFWWindow::IsKeyPressed(KeyCode key) const
+{
+    return glfwGetKey(Window, GLFWKeyMapper::ToGLFWKey(key)) == GLFW_PRESS;
+}
+
+void GLFWWindow::GetCursorPos(double& x, double& y) const
+{
+    glfwGetCursorPos(Window, &x, &y);
+}
+
+void GLFWWindow::SetResizeCallback(const ResizeCallback& callback)
+{
+    resizeCallback_ = callback;
+}
+
+void GLFWWindow::SetKeyCallback(const KeyCallback& callback)
+{
+    keyCallback_ = callback;
+}
+
+void GLFWWindow::SetMouseButtonCallback(const MouseButtonCallback& callback)
+{
+    mouseButtonCallback_ = callback;
+}
+
+void GLFWWindow::SetCursorPosCallback(const CursorPosCallback& callback)
+{
+    cursorPosCallback_ = callback;
+}
+
+void GLFWWindow::GLFWResizeCallback(GLFWwindow* window, int width, int height)
+{
+    if (const auto It = Registry.find(window); It != Registry.end() && It->second->resizeCallback_)
+    {
+        It->second->resizeCallback_(width, height);
     }
 }
 
-void GLFWWindow::OnKeyEvent(GLFWwindow* Window, int Key, int Scancode, int Action, int Mods) {
-    if (const auto It = Registry.find(Window); It != Registry.end() && It->second->KeyCallback) {
-        It->second->KeyCallback(Key, Scancode, Action, Mods);
+void GLFWWindow::GLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (const auto It = Registry.find(window); It != Registry.end() && It->second->keyCallback_)
+    {
+        It->second->keyCallback_(GLFWKeyMapper::FromGLFWKey(key), GLFWKeyMapper::FromGLFWAction(action));
     }
 }
 
-void GLFWWindow::OnMouseButtonEvent(GLFWwindow* Window, int Button, int Action, int Mods) {
-    if (const auto It = Registry.find(Window);
-        It != Registry.end() && It->second->MouseButtonCallback) {
-        It->second->MouseButtonCallback(Button, Action, Mods);
+void GLFWWindow::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (const auto It = Registry.find(window);
+        It != Registry.end() && It->second->mouseButtonCallback_)
+    {
+        It->second->mouseButtonCallback_(GLFWKeyMapper::FromGLFWButton(button), GLFWKeyMapper::FromGLFWAction(action));
     }
 }
 
-void GLFWWindow::OnMoveCursorPos(GLFWwindow* Window, double XPos, double YPos) {
-    if (const auto It = Registry.find(Window);
-        It != Registry.end() && It->second->CursorPosCallback) {
-        It->second->CursorPosCallback(XPos, YPos);
+void GLFWWindow::GLFWCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (const auto It = Registry.find(window);
+        It != Registry.end() && It->second->cursorPosCallback_)
+    {
+        It->second->cursorPosCallback_(xpos, ypos);
     }
 }
 
-std::unique_ptr<IWindow> Window::Create(const WindowContext& InWindowContext) {
-    return std::make_unique<GLFWWindow>(InWindowContext);
+std::unique_ptr<IWindow> Window::Create(const WindowDesc& windowDesc)
+{
+    return std::make_unique<GLFWWindow>(windowDesc);
 }
 
 } // namespace Volante

@@ -18,17 +18,20 @@ find_package(glad CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 
+# インクルードディレクトリ
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Source)
+
 # ソースファイル
 add_executable (Volante
     "Volante.cpp"
     "Volante.h"
     "Engine.cpp"
     "Engine.h"
-    "IWindow.h"
     "GLFWWindow.cpp"
     "GLFWWindow.h"
     "Shader.h"
     "Mesh.h"
+    "GLFWKeyMapper.h"
 )
 
 # ライブラリのリンク
