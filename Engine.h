@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include "IWindow.h"
 
 namespace Volante {
@@ -25,11 +27,15 @@ public:
     bool Initialize(const WindowContext& WindowContext);
     void Run();
     void Shutdown();
+
     void RequestExit() { Running = false; }
 
     [[nodiscard]] IWindow* GetWindow() const { return Window.get(); }
+
     [[nodiscard]] World* GetWorld() const { return World.get(); }
+
     [[nodiscard]] Renderer* GetRenderer() const { return Renderer.get(); }
+
     [[nodiscard]] InputManager* GetInputManager() const { return InputManager.get(); }
 
     static Engine* Get() { return Instance; }
@@ -100,4 +106,4 @@ private:
     IWindow* Window;
 };
 
-}
+} // namespace Volante

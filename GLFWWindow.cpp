@@ -1,5 +1,9 @@
 #include "GLFWWindow.h"
 
+#include <memory>
+#include <stdexcept>
+#include <unordered_map>
+
 namespace Volante {
 
 std::unordered_map<GLFWwindow*, GLFWWindow*> GLFWWindow::Registry;
