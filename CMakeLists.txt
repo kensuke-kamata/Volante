@@ -22,6 +22,11 @@ find_package(imgui CONFIG REQUIRED)
 add_executable (Volante
     "Volante.cpp"
     "Volante.h"
+    "Engine.cpp"
+    "Engine.h"
+    "IWindow.h"
+    "GLFWWindow.cpp"
+    "GLFWWindow.h"
     "Shader.h"
     "Mesh.h"
 )
