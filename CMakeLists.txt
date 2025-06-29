@@ -27,11 +27,11 @@ add_executable (Volante
     "Volante.h"
     "Engine.cpp"
     "Engine.h"
-    "GLFWWindow.cpp"
-    "GLFWWindow.h"
     "Shader.h"
     "Mesh.h"
-    "GLFWKeyMapper.h"
+    "Source/Platform/GLFW/GLFWWindow.cpp"
+    "Source/Platform/GLFW/GLFWWindow.h"
+    "Source/Platform/GLFW/GLFWKeyMapper.h"
 )
 
 # ライブラリのリンク
